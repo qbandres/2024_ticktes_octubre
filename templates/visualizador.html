@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Visualizador de Tickets</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Visualizador de Tickets</h1>
+    <ul>
+        {% for ticket in tickets %}
+            <li>
+                Ticket ID: {{ ticket.id }} - Estatus: {{ ticket.estatus }}
+                <ul>
+                    <li>Stand 1: {{ ticket.stand_1 }}</li>
+                    <li>Stand 2: {{ ticket.stand_2 }}</li>
+                    <li>Stand 3: {{ ticket.stand_3 }}</li>
+                    <li>Fecha Creación: {{ ticket.date_created }}</li>
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+        socket.on('ticket_update', function(data) {
+            console.log('Evento ticket_update recibido:', data);
+            location.reload();  // Recargar la página para actualizar los cambios
+        });
+    </script>
+    
+</body>
+</html>

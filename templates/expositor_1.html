@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expositor 1</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script type="text/javascript">
+        document.addEventListener("DOMContentLoaded", function() {
+            var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+            socket.on('connect', function() {
+                console.log('Conectado a SocketIO en expositor 1');
+            });
+
+            // Escucha el evento 'ticket_update' y recarga la página cuando se reciba un evento
+            socket.on('ticket_update', function(data) {
+                console.log('Evento recibido en expositor 1:', data);
+                location.reload();  // Recargar la página para actualizar la lista de tickets
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>Expositor 1 - Tickets Pendientes</h1>
+    <ul>
+        {% for ticket in tickets %}
+        <li>
+            Ticket ID: {{ ticket.id }} - Estatus: {{ ticket.stand_1 }}
+            {% if ticket.stand_1 == 'pendiente' %}
+            <form action="{{ url_for('call_ticket', stand_number=1, ticket_id=ticket.id) }}" method="POST">
+                <button type="submit">Llamar Ticket</button>
+            </form>
+            {% elif ticket.stand_1 == 'en proceso' %}
+            <form action="{{ url_for('close_expositor_ticket', stand_number=1, ticket_id=ticket.id) }}" method="POST">
+                <button type="submit">Cerrar Ticket</button>
+            </form>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
