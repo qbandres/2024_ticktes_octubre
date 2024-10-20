@@ -3,22 +3,47 @@
 <head>
     <title>Visualizador de Tickets</title>
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
     <h1>Visualizador de Tickets</h1>
-    <ul>
-        {% for ticket in tickets %}
-            <li>
-                Ticket ID: {{ ticket.id }} - Estatus: {{ ticket.estatus }}
-                <ul>
-                    <li>Stand 1: {{ ticket.stand_1 }}</li>
-                    <li>Stand 2: {{ ticket.stand_2 }}</li>
-                    <li>Stand 3: {{ ticket.stand_3 }}</li>
-                    <li>Fecha Creación: {{ ticket.date_created }}</li>
-                </ul>
-            </li>
-        {% endfor %}
-    </ul>
+    <table>
+        <thead>
+            <tr>
+                <th>Ticket ID</th>
+                <th>Estatus</th>
+                <th>Stand 1</th>
+                <th>Stand 2</th>
+                <th>Stand 3</th>
+                <th>Fecha Creación</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr>
+                <td>{{ ticket.id }}</td>
+                <td>{{ ticket.estatus }}</td>
+                <td>{{ ticket.stand_1 }}</td>
+                <td>{{ ticket.stand_2 }}</td>
+                <td>{{ ticket.stand_3 }}</td>
+                <td>{{ ticket.date_created }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
     <script>
         var socket = io.connect('http://' + document.domain + ':' + location.port);
@@ -27,6 +52,6 @@
             location.reload();  // Recargar la página para actualizar los cambios
         });
     </script>
-    
 </body>
 </html>
+

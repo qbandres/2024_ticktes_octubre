@@ -30,10 +30,11 @@ class Ticket(db.Model):
 def index():
     return redirect(url_for('admin_view'))  # Redirige a la función admin_view
 
-# Vista del administrador, muestra todos los tickets
+# Vista del administrador, muestra todos los tickets ordenados
 @app.route('/admin')
 def admin_view():
-    tickets = Ticket.query.all()  # Recupera todos los tickets de la base de datos
+    # Ordenar por el estado 'creado' primero y luego por la fecha de creación
+    tickets = Ticket.query.order_by(Ticket.estatus.desc(), Ticket.date_created).all()
     return render_template('admin.html', tickets=tickets)  # Muestra la plantilla admin.html con la lista de tickets
 
 # Ruta para crear un nuevo ticket
@@ -57,13 +58,25 @@ def close_ticket(ticket_id):
         ticket.stand_1 = 'atendido'  # Marca el ticket como atendido en el stand 1
         ticket.stand_2 = 'atendido'  # Marca el ticket como atendido en el stand 2
         ticket.stand_3 = 'atendido'  # Marca el ticket como atendido en el stand 3
-        ticket.date_closed = datetime.utcnow()  # Registra la fecha y hora de cierre del ticket
+        # Obtener la fecha y hora local del sistema
+        ticket.date_closed = datetime.now()  # Usa la hora local del sistema
         db.session.commit()  # Guarda los cambios en la base de datos
 
         # Emite un evento para notificar que el ticket ha sido cerrado
         socketio.emit('ticket_update', {'action': 'closed', 'ticket_id': ticket.id})
     
     return redirect(url_for('admin_view'))  # Redirige a la vista del administrador
+
+# Función para verificar y cerrar automáticamente un ticket
+def check_and_close_ticket(ticket):
+    # Verifica si todos los stands están atendidos
+    if ticket.stand_1 == 'atendido' and ticket.stand_2 == 'atendido' and ticket.stand_3 == 'atendido':
+        ticket.estatus = 'cerrado'
+        ticket.date_closed = datetime.now()  # Registra la fecha y hora local del sistema
+        db.session.commit()  # Guarda los cambios en la base de datos
+
+        # Emite un evento para notificar que el ticket ha sido cerrado
+        socketio.emit('ticket_update', {'action': 'closed', 'ticket_id': ticket.id})
 
 # Vista del visualizador, muestra los tickets en estado "creado"
 @app.route('/visualizador')
@@ -118,6 +131,9 @@ def close_expositor_ticket(stand_number, ticket_id):
 
         # Emite un evento para notificar que un ticket ha sido atendido en un stand
         socketio.emit('ticket_update', {'action': 'attended', 'ticket_id': ticket.id, 'stand': stand_number})
+
+        # Verificar si todos los stands están atendidos para cerrar el ticket automáticamente
+        check_and_close_ticket(ticket)
     
     return redirect(url_for('expositor_view', stand_number=stand_number))  # Redirige a la vista del expositor correspondiente
 
